@@ -3,12 +3,29 @@ package main
 import (
 	"fmt"
 	"net/http"
+	"sync/atomic"
 )
+
+type apiConfig struct {
+	fileServerHits atomic.Int32
+}
+
+func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		cfg.fileServerHits.Add(1)
+		next.ServeHTTP(w, r)
+	})
+}
 
 func main() {
 	serveMux := http.NewServeMux()
-	serveMux.Handle("/app/", http.StripPrefix("/app", http.FileServer(http.Dir("."))))
+	cfg := &apiConfig{}
+
+	appHandler := http.StripPrefix("/app", http.FileServer(http.Dir(".")))
+	serveMux.Handle("/app/", cfg.middlewareMetricsInc(appHandler))
 	serveMux.HandleFunc("/healthz", HealthzHandler)
+	serveMux.HandleFunc("/metrics", cfg.MetricsHandler)
+	serveMux.HandleFunc("/reset", cfg.ResetHandler)
 
 	server := http.Server{
 		Addr:    ":8080",
@@ -21,8 +38,21 @@ func main() {
 	}
 }
 
-func HealthzHandler(writer http.ResponseWriter, request *http.Request) {
-	writer.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	writer.WriteHeader(http.StatusOK)
-	writer.Write([]byte(http.StatusText(http.StatusOK)))
+func HealthzHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(http.StatusText(http.StatusOK)))
+}
+
+func (cfg *apiConfig) MetricsHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte(fmt.Sprintf("Hits: %d", cfg.fileServerHits.Load())))
+}
+
+func (cfg *apiConfig) ResetHandler(w http.ResponseWriter, r *http.Request) {
+	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
+	w.WriteHeader(http.StatusOK)
+	w.Write([]byte("Reset"))
+	cfg.fileServerHits.Store(0)
 }
