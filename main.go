@@ -10,13 +10,6 @@ type apiConfig struct {
 	fileServerHits atomic.Int32
 }
 
-func (cfg *apiConfig) middlewareMetricsInc(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		cfg.fileServerHits.Add(1)
-		next.ServeHTTP(w, r)
-	})
-}
-
 func main() {
 	serveMux := http.NewServeMux()
 	cfg := &apiConfig{}
@@ -36,29 +29,4 @@ func main() {
 	if err != nil {
 		fmt.Println(err)
 	}
-}
-
-func HealthzHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte(http.StatusText(http.StatusOK)))
-}
-
-func (cfg *apiConfig) MetricsHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/html; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	html := `<html>
-  <body>
-    <h1>Welcome, Chirpy Admin</h1>
-    <p>Chirpy has been visited %d times!</p>
-  </body>
-</html>`
-	w.Write([]byte(fmt.Sprintf(html, cfg.fileServerHits.Load())))
-}
-
-func (cfg *apiConfig) ResetHandler(w http.ResponseWriter, r *http.Request) {
-	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
-	w.WriteHeader(http.StatusOK)
-	w.Write([]byte("Reset"))
-	cfg.fileServerHits.Store(0)
 }
