@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 )
 
 func ValidateChiprHandler(w http.ResponseWriter, r *http.Request) {
@@ -10,7 +11,7 @@ func ValidateChiprHandler(w http.ResponseWriter, r *http.Request) {
 		Body string `json:"body"`
 	}
 	type returnVals struct {
-		Valid bool `json:"valid"`
+		CleanedBody string `json:"cleaned_body"`
 	}
 	decoder := json.NewDecoder(r.Body)
 	p := parameters{}
@@ -25,6 +26,24 @@ func ValidateChiprHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res := returnVals{Valid: true}
+	// replace profane words
+	profaneWords := map[string]struct{}{
+		"kerfuffle": {},
+		"sharbert": {},
+		"fornax": {},
+	}
+	// ignore new lines I guess
+	parts := strings.Split(p.Body, " ")
+	for i := 0; i < len(parts); i++ {
+		part := strings.ToLower(parts[i])
+		if _, ok := profaneWords[part]; ok {
+			parts[i] = "****"
+		}
+	}
+	res := returnVals{
+		// join parts back (missing previous whitespace other than spaces)
+		CleanedBody: strings.Join(parts, " "),
+	}
+
 	respondWithJson(w, http.StatusOK, res)
 }
