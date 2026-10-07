@@ -6,15 +6,24 @@ import (
 	"net/http"
 	"os"
 	"sync/atomic"
+	"time"
 
 	"github.com/davidheeren/chirpy/internal/database"
+	"github.com/google/uuid"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 type apiConfig struct {
 	fileServerHits atomic.Int32
-	dbQueries *database.Queries
+	dbQueries      *database.Queries
+}
+
+type User struct {
+	ID        uuid.UUID `json:"id"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+	Email     string    `json:"email"`
 }
 
 func main() {
@@ -36,6 +45,7 @@ func main() {
 
 	serveMux.HandleFunc("GET /api/healthz", HealthzHandler)
 	serveMux.HandleFunc("POST /api/validate_chirp", ValidateChiprHandler)
+	serveMux.HandleFunc("POST /api/users", cfg.CreateUserHandler)
 
 	serveMux.HandleFunc("GET /admin/metrics", cfg.MetricsHandler)
 	serveMux.HandleFunc("POST /admin/reset", cfg.ResetHandler)
