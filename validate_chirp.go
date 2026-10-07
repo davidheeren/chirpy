@@ -17,12 +17,12 @@ func ValidateChiprHandler(w http.ResponseWriter, r *http.Request) {
 	p := parameters{}
 	err := decoder.Decode(&p)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "invalid post json")
+		respondWithError(w, http.StatusInternalServerError, "invalid post json", err)
 		return
 	}
 
 	if len(p.Body) > 140 {
-		respondWithError(w, http.StatusBadRequest, "Chirp is too long")
+		respondWithError(w, http.StatusBadRequest, "Chirp is too long", err)
 		return
 	}
 

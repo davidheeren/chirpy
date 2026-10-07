@@ -3,12 +3,16 @@ package main
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"net/http"
 )
 
-func respondWithError(w http.ResponseWriter, code int, msg string) {
+func respondWithError(w http.ResponseWriter, code int, msg string, err error) {
 	type returnVals struct {
 		Error string `json:"error"`
+	}
+	if err != nil {
+		log.Println(err)
 	}
 	res := returnVals{Error: msg}
 	respondWithJson(w, code, res)

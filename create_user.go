@@ -13,13 +13,13 @@ func (cfg *apiConfig) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 	p := parameters{}
 	err := decoder.Decode(&p)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "invalid post json")
+		respondWithError(w, http.StatusInternalServerError, "invalid post json", err)
 		return
 	}
 
 	user, err := cfg.dbQueries.CreateUser(r.Context(), p.Email)
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "could not create new user")
+		respondWithError(w, http.StatusInternalServerError, "could not create new user", err)
 		return
 	}
 
