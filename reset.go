@@ -6,6 +6,7 @@ func (cfg *apiConfig) ResetHandler(w http.ResponseWriter, r *http.Request) {
 	err := cfg.dbQueries.Reset(r.Context())
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "could not reset the database", err)
+		return
 	}
 
 	w.Header().Add("Content-Type", "text/plain; charset=utf-8")
