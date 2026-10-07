@@ -52,7 +52,8 @@ func main() {
 	serveMux.Handle("/app/", cfg.middlewareMetricsInc(appHandler))
 
 	serveMux.HandleFunc("GET /api/healthz", HealthzHandler)
-	serveMux.HandleFunc("POST /api/chirps", cfg.CreateChripHandler)
+	serveMux.HandleFunc("POST /api/chirps", cfg.CreateChirpHandler)
+	serveMux.HandleFunc("GET /api/chirps", cfg.GetChirpsHandler)
 	serveMux.HandleFunc("POST /api/users", cfg.CreateUserHandler)
 
 	serveMux.HandleFunc("GET /admin/metrics", cfg.MetricsHandler)

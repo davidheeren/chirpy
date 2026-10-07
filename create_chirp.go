@@ -9,7 +9,7 @@ import (
 	"github.com/google/uuid"
 )
 
-func (cfg *apiConfig) CreateChripHandler(w http.ResponseWriter, r *http.Request) {
+func (cfg *apiConfig) CreateChirpHandler(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Body   string    `json:"body"`
 		UserID uuid.UUID `json:"user_id"`
