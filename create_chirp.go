@@ -5,19 +5,30 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/davidheeren/chirpy/internal/auth"
 	"github.com/davidheeren/chirpy/internal/database"
-	"github.com/google/uuid"
 )
 
 func (cfg *apiConfig) CreateChirpHandler(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Body   string    `json:"body"`
-		UserID uuid.UUID `json:"user_id"`
+		Body string `json:"body"`
+	}
+
+	jwt, err := auth.GetBearerToken(r.Header)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, "could not get bearer token", err)
+		return
+	}
+
+	userID, err := auth.ValidateJWT(jwt, cfg.jwtSecret)
+	if err != nil {
+		respondWithError(w, http.StatusUnauthorized, "could not validate user. please login", err)
+		return
 	}
 
 	decoder := json.NewDecoder(r.Body)
 	p := parameters{}
-	err := decoder.Decode(&p)
+	err = decoder.Decode(&p)
 	if err != nil {
 		respondWithError(w, http.StatusInternalServerError, "invalid post json", err)
 		return
@@ -49,7 +60,7 @@ func (cfg *apiConfig) CreateChirpHandler(w http.ResponseWriter, r *http.Request)
 		r.Context(),
 		database.CreateChirpParams{
 			Body:   cleanedBody,
-			UserID: p.UserID,
+			UserID: userID,
 		},
 	)
 	if err != nil {

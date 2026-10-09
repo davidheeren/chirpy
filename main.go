@@ -2,7 +2,7 @@ package main
 
 import (
 	"database/sql"
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 	"sync/atomic"
@@ -17,6 +17,7 @@ import (
 type apiConfig struct {
 	fileServerHits atomic.Int32
 	dbQueries      *database.Queries
+	jwtSecret      string
 }
 
 type User struct {
@@ -24,6 +25,7 @@ type User struct {
 	CreatedAt time.Time `json:"created_at"`
 	UpdatedAt time.Time `json:"updated_at"`
 	Email     string    `json:"email"`
+	Token     string    `json:"token"`
 }
 
 type Chirp struct {
@@ -35,17 +37,30 @@ type Chirp struct {
 }
 
 func main() {
-	godotenv.Load()
-	dbURL := os.Getenv("DB_URL")
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	dbURL, ok := os.LookupEnv("DB_URL")
+	if !ok {
+		log.Fatal("DB_URL environment variable must be set")
+	}
+
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		fmt.Println(err.Error())
-		return
+		log.Fatal(err.Error())
+	}
+
+	jwtSecret, ok := os.LookupEnv("JWT_SECRET")
+	if !ok {
+		log.Fatal("JWT_SECRET environment variable must be set")
 	}
 
 	serveMux := http.NewServeMux()
 	cfg := &apiConfig{
 		dbQueries: database.New(db),
+		jwtSecret: jwtSecret,
 	}
 
 	appHandler := http.StripPrefix("/app", http.FileServer(http.Dir(".")))
@@ -68,6 +83,6 @@ func main() {
 
 	err = server.ListenAndServe()
 	if err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
 }

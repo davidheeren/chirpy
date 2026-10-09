@@ -12,7 +12,7 @@ import (
 func (cfg *apiConfig) CreateUserHandler(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
 		Password string `json:"password"`
-		Email string `json:"email"`
+		Email    string `json:"email"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -35,7 +35,7 @@ func (cfg *apiConfig) CreateUserHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	user, err := cfg.dbQueries.CreateUser(r.Context(), database.CreateUserParams{
-		Email: p.Email,
+		Email:          p.Email,
 		HashedPassword: hashedPassword,
 	})
 	if err != nil {
