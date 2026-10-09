@@ -38,13 +38,33 @@ func (q *Queries) CreateUser(ctx context.Context, arg CreateUserParams) (User, e
 	return i, err
 }
 
-const geUserByEmail = `-- name: GeUserByEmail :one
+const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT id, created_at, updated_at, email, hashed_password FROM users
 WHERE email = $1
 `
 
-func (q *Queries) GeUserByEmail(ctx context.Context, email string) (User, error) {
-	row := q.db.QueryRowContext(ctx, geUserByEmail, email)
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.Email,
+		&i.HashedPassword,
+	)
+	return i, err
+}
+
+const getUserByRefreshToken = `-- name: GetUserByRefreshToken :one
+SELECT users.id, users.created_at, users.updated_at, users.email, users.hashed_password
+FROM users
+JOIN refresh_tokens ON refresh_tokens.user_id = users.id
+WHERE refresh_tokens.token = $1
+`
+
+func (q *Queries) GetUserByRefreshToken(ctx context.Context, token string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByRefreshToken, token)
 	var i User
 	err := row.Scan(
 		&i.ID,

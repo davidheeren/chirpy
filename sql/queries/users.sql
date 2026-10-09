@@ -8,6 +8,12 @@ VALUES (
     $2
 ) RETURNING *;
 
--- name: GeUserByEmail :one
+-- name: GetUserByEmail :one
 SELECT * FROM users
 WHERE email = $1;
+
+-- name: GetUserByRefreshToken :one
+SELECT users.id, users.created_at, users.updated_at, users.email, users.hashed_password
+FROM users
+JOIN refresh_tokens ON refresh_tokens.user_id = users.id
+WHERE refresh_tokens.token = $1;

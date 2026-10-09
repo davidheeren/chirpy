@@ -28,7 +28,7 @@ func (cfg *apiConfig) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := cfg.dbQueries.GeUserByEmail(r.Context(), p.Email)
+	user, err := cfg.dbQueries.GetUserByEmail(r.Context(), p.Email)
 	if err != nil {
 		respondWithError(w, http.StatusUnauthorized, "incorrect email or password", err)
 		return
