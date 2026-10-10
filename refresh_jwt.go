@@ -7,11 +7,11 @@ import (
 	"github.com/davidheeren/chirpy/internal/auth"
 )
 
-func (cfg *apiConfig) RefreshJWTHandler(w http.ResponseWriter, r *http.Request) {
-	type returnVals struct {
-		Token string `json:"token"`
-	}
+type refreshedToken struct {
+	Token string `json:"token"`
+}
 
+func (cfg *apiConfig) RefreshJWTHandler(w http.ResponseWriter, r *http.Request) {
 	refreshToken, err := auth.GetBearerToken(r.Header)
 	if err != nil {
 		respondWithError(w, http.StatusBadRequest, "could not get bearer token", err)
@@ -30,7 +30,7 @@ func (cfg *apiConfig) RefreshJWTHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	rv := returnVals{
+	rv := refreshedToken{
 		Token: jwt,
 	}
 

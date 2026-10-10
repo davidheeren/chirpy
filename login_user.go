@@ -9,15 +9,16 @@ import (
 	"github.com/davidheeren/chirpy/internal/database"
 )
 
+type loginUser struct {
+	User
+	Token        string `json:"token"`
+	RefreshToken string `json:"refresh_token"`
+}
+
 func (cfg *apiConfig) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 	type parameters struct {
-		Password         string `json:"password"`
-		Email            string `json:"email"`
-	}
-	type returnVals struct {
-		User
-		Token string `json:"token"`
-		RefreshToken string `json:"refresh_token"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
 	}
 
 	decoder := json.NewDecoder(r.Body)
@@ -53,8 +54,8 @@ func (cfg *apiConfig) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 
 	tokenExpiresAt := time.Now().UTC().UTC().Add(time.Hour * 24 * 60) // 60 days
 	rft, err := cfg.dbQueries.CreateRefreshToken(r.Context(), database.CreateRefreshTokenParams{
-		Token: auth.MakeRefreshToken(),
-		UserID: user.ID,
+		Token:     auth.MakeRefreshToken(),
+		UserID:    user.ID,
 		ExpiresAt: tokenExpiresAt,
 	})
 	if err != nil {
@@ -62,14 +63,14 @@ func (cfg *apiConfig) LoginUserHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	rv := returnVals{
+	rv := loginUser{
 		User: User{
 			ID:        user.ID,
 			CreatedAt: user.CreatedAt,
 			UpdatedAt: user.UpdatedAt,
 			Email:     user.Email,
 		},
-		Token: jwt,
+		Token:        jwt,
 		RefreshToken: rft.Token,
 	}
 

@@ -2,6 +2,7 @@ package main
 
 import (
 	"database/sql"
+	"errors"
 	"log"
 	"net/http"
 	"os"
@@ -36,19 +37,32 @@ type Chirp struct {
 }
 
 func main() {
-	err := godotenv.Load()
+	cfg, err := createConfig()
+	if (err != nil) {
+		log.Fatal(err)
+	}
+
+	server := createServer(cfg)
+	err = server.ListenAndServe()
 	if err != nil {
 		log.Fatal(err)
+	}
+}
+
+func createConfig() (*apiConfig, error) {
+	err := godotenv.Load()
+	if err != nil {
+		return nil, err
 	}
 
 	dbURL, ok := os.LookupEnv("DB_URL")
 	if !ok {
-		log.Fatal("DB_URL environment variable must be set")
+		return nil, errors.New("DB_URL environment variable must be set")
 	}
 
 	db, err := sql.Open("postgres", dbURL)
 	if err != nil {
-		log.Fatal(err.Error())
+		return nil, err
 	}
 
 	jwtSecret, ok := os.LookupEnv("JWT_SECRET")
@@ -56,12 +70,14 @@ func main() {
 		log.Fatal("JWT_SECRET environment variable must be set")
 	}
 
-	serveMux := http.NewServeMux()
-	cfg := &apiConfig{
+	return &apiConfig{
 		dbQueries: database.New(db),
 		jwtSecret: jwtSecret,
-	}
+	}, nil
+}
 
+func createServer(cfg *apiConfig) http.Server {
+	serveMux := http.NewServeMux()
 	appHandler := http.StripPrefix("/app", http.FileServer(http.Dir(".")))
 	serveMux.Handle("/app/", cfg.middlewareMetricsInc(appHandler))
 
@@ -77,13 +93,8 @@ func main() {
 	serveMux.HandleFunc("GET /admin/metrics", cfg.MetricsHandler)
 	serveMux.HandleFunc("POST /admin/reset", cfg.ResetHandler)
 
-	server := http.Server{
+	return http.Server{
 		Addr:    ":8080",
 		Handler: serveMux,
-	}
-
-	err = server.ListenAndServe()
-	if err != nil {
-		log.Fatal(err)
 	}
 }
