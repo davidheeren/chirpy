@@ -9,7 +9,7 @@ import (
 func (cfg *apiConfig) RevokeRefreshTokenHandler(w http.ResponseWriter, r *http.Request) {
 	refreshToken, err := auth.GetBearerToken(r.Header)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, "could not get bearer token", err)
+		respondWithError(w, http.StatusUnauthorized, "could not validate user. please login", err)
 		return
 	}
 

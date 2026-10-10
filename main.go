@@ -86,6 +86,7 @@ func createServer(cfg *apiConfig) http.Server {
 	serveMux.HandleFunc("GET /api/chirps", cfg.GetChirpsHandler)
 	serveMux.HandleFunc("GET /api/chirps/{id}", cfg.GetChirpHandler)
 	serveMux.HandleFunc("POST /api/users", cfg.CreateUserHandler)
+	serveMux.HandleFunc("PUT /api/users", cfg.UpdateUserHandler)
 	serveMux.HandleFunc("POST /api/login", cfg.LoginUserHandler)
 	serveMux.HandleFunc("POST /api/refresh", cfg.RefreshJWTHandler)
 	serveMux.HandleFunc("POST /api/revoke", cfg.RevokeRefreshTokenHandler)

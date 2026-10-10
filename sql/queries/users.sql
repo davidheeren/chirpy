@@ -18,3 +18,9 @@ FROM users
 JOIN refresh_tokens ON refresh_tokens.user_id = users.id
 WHERE refresh_tokens.token = $1
 AND refresh_tokens.revoked_at IS NULL;
+
+-- name: UpdateUser :one
+UPDATE users
+SET hashed_password = $2, email = $3, updated_at = NOW()
+WHERE id = $1
+RETURNING *;
