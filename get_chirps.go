@@ -7,7 +7,7 @@ import (
 func (cfg *apiConfig) GetChirpsHandler(w http.ResponseWriter, r *http.Request) {
 	chirps, err := cfg.dbQueries.GetChirps(r.Context())
 	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "could not chirps in database", err)
+		respondWithError(w, http.StatusInternalServerError, "could not get chirps in database", err)
 		return
 	}
 

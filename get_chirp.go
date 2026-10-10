@@ -16,7 +16,7 @@ func (cfg *apiConfig) GetChirpHandler(w http.ResponseWriter, r *http.Request) {
 
 	chirp, err := cfg.dbQueries.GetChirp(r.Context(), chirpID)
 	if err != nil {
-		respondWithError(w, http.StatusNotFound, "could not chirps in database", err)
+		respondWithError(w, http.StatusNotFound, "could not get chirp in database", err)
 		return
 	}
 
