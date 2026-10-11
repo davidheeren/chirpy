@@ -30,3 +30,18 @@ func MakeRefreshToken() string {
 	rand.Read(token)
 	return hex.EncodeToString(token)
 }
+
+func GetAPIKey(headers http.Header) (string, error) {
+	authHeader := headers.Get("Authorization")
+	if authHeader == "" {
+		return "", errors.New("Authorization header cannot be empty")
+	}
+
+	key := strings.TrimLeft(authHeader, "ApiKey")
+	if key == authHeader {
+		return "", errors.New("'ApiKey' must start the Authorization header")
+	}
+	key = strings.TrimSpace(key)
+
+	return key, nil
+}

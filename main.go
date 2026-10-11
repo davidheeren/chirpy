@@ -19,6 +19,7 @@ type apiConfig struct {
 	fileServerHits atomic.Int32
 	dbQueries      *database.Queries
 	jwtSecret      string
+	polkaKey       string
 }
 
 type User struct {
@@ -68,12 +69,18 @@ func createConfig() (*apiConfig, error) {
 
 	jwtSecret, ok := os.LookupEnv("JWT_SECRET")
 	if !ok {
-		log.Fatal("JWT_SECRET environment variable must be set")
+		return nil, errors.New("JWT_SECRET environment variable must be set")
+	}
+
+	polkaKey, ok := os.LookupEnv("POLKA_KEY")
+	if !ok {
+		return nil, errors.New("POLKA_KEY environment variable must be set")
 	}
 
 	return &apiConfig{
 		dbQueries: database.New(db),
 		jwtSecret: jwtSecret,
+		polkaKey:  polkaKey,
 	}, nil
 }
 
