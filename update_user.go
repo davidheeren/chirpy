@@ -46,8 +46,8 @@ func (cfg *apiConfig) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user, err := cfg.dbQueries.UpdateUser(r.Context(), database.UpdateUserParams{
-		ID: userID,
+	user, err := cfg.dbQueries.UpdateUserAuth(r.Context(), database.UpdateUserAuthParams{
+		ID:             userID,
 		Email:          p.Email,
 		HashedPassword: hashedPassword,
 	})
@@ -57,10 +57,11 @@ func (cfg *apiConfig) UpdateUserHandler(w http.ResponseWriter, r *http.Request) 
 	}
 
 	rv := User{
-		ID:        user.ID,
-		CreatedAt: user.CreatedAt,
-		UpdatedAt: user.UpdatedAt,
-		Email:     user.Email,
+		ID:          user.ID,
+		CreatedAt:   user.CreatedAt,
+		UpdatedAt:   user.UpdatedAt,
+		Email:       user.Email,
+		IsChirpyRed: user.IsChirpyRed,
 	}
 
 	respondWithJson(w, http.StatusOK, rv)

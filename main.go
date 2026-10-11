@@ -22,10 +22,11 @@ type apiConfig struct {
 }
 
 type User struct {
-	ID        uuid.UUID `json:"id"`
-	CreatedAt time.Time `json:"created_at"`
-	UpdatedAt time.Time `json:"updated_at"`
-	Email     string    `json:"email"`
+	ID          uuid.UUID `json:"id"`
+	CreatedAt   time.Time `json:"created_at"`
+	UpdatedAt   time.Time `json:"updated_at"`
+	Email       string    `json:"email"`
+	IsChirpyRed bool    `json:"is_chirpy_red"`
 }
 
 type Chirp struct {
@@ -38,7 +39,7 @@ type Chirp struct {
 
 func main() {
 	cfg, err := createConfig()
-	if (err != nil) {
+	if err != nil {
 		log.Fatal(err)
 	}
 
@@ -91,6 +92,7 @@ func createServer(cfg *apiConfig) http.Server {
 	serveMux.HandleFunc("POST /api/login", cfg.LoginUserHandler)
 	serveMux.HandleFunc("POST /api/refresh", cfg.RefreshJWTHandler)
 	serveMux.HandleFunc("POST /api/revoke", cfg.RevokeRefreshTokenHandler)
+	serveMux.HandleFunc("POST /api/polka/webhooks", cfg.PolkaWebhookHandler)
 
 	serveMux.HandleFunc("GET /admin/metrics", cfg.MetricsHandler)
 	serveMux.HandleFunc("POST /admin/reset", cfg.ResetHandler)

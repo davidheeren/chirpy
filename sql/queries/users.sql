@@ -1,11 +1,12 @@
 -- name: CreateUser :one
-INSERT INTO users (id, created_at, updated_at, email, hashed_password)
+INSERT INTO users (id, created_at, updated_at, email, hashed_password, is_chirpy_red)
 VALUES (
     gen_random_uuid(),
     NOW(),
     NOW(),
     $1,
-    $2
+    $2,
+    FALSE
 ) RETURNING *;
 
 -- name: GetUserByEmail :one
@@ -19,8 +20,14 @@ JOIN refresh_tokens ON refresh_tokens.user_id = users.id
 WHERE refresh_tokens.token = $1
 AND refresh_tokens.revoked_at IS NULL;
 
--- name: UpdateUser :one
+-- name: UpdateUserAuth :one
 UPDATE users
 SET hashed_password = $2, email = $3, updated_at = NOW()
+WHERE id = $1
+RETURNING *;
+
+-- name: UpdateUserChirpyRed :one
+UPDATE users
+SET is_chirpy_red = TRUE
 WHERE id = $1
 RETURNING *;
