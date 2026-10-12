@@ -2,13 +2,35 @@ package main
 
 import (
 	"net/http"
+
+	"github.com/davidheeren/chirpy/internal/database"
+	"github.com/google/uuid"
 )
 
 func (cfg *apiConfig) GetChirpsHandler(w http.ResponseWriter, r *http.Request) {
-	chirps, err := cfg.dbQueries.GetChirps(r.Context())
-	if err != nil {
-		respondWithError(w, http.StatusInternalServerError, "could not get chirps in database", err)
-		return
+	author_id := r.URL.Query().Get("author_id")
+	var chirps []database.Chirp
+	var err error
+
+	// get chirps only by user id if author_id is not empty
+	// otherwise get all chirps
+	if author_id != "" {
+		userID, err := uuid.Parse(author_id)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "could not get chirps in database", err)
+			return
+		}
+		chirps, err = cfg.dbQueries.GetChirpsByUserID(r.Context(), userID)
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "could not get chirps in database", err)
+			return
+		}
+	} else {
+		chirps, err = cfg.dbQueries.GetChirps(r.Context())
+		if err != nil {
+			respondWithError(w, http.StatusInternalServerError, "could not get chirps in database", err)
+			return
+		}
 	}
 
 	resChirps := make([]Chirp, len(chirps))
